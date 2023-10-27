@@ -128,6 +128,7 @@ export async function getPosts(handle: string, numDays: number = 30): Promise<Bs
                 return new Error("Couldn't get posts of account " + handle);
             }
             cursor = response.data.cursor;
+            if (!cursor) break;
             let done = false;
             for (const post of response.data.feed) {
                 if (post.post.author.handle != handle) continue;

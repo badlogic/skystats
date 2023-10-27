@@ -288,5 +288,5 @@ export function generateHours(): string[] {
 }
 
 export function generateWeekdays(): string[] {
-    return ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    return ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 }
