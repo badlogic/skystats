@@ -1,4 +1,4 @@
-import { LitElement, TemplateResult, html, nothing, svg } from "lit";
+import { LitElement, PropertyValueMap, TemplateResult, html, nothing, svg } from "lit";
 import { map } from "lit-html/directives/map.js";
 import { unsafeHTML } from "lit-html/directives/unsafe-html.js";
 import { customElement, query, state } from "lit/decorators.js";
@@ -45,8 +45,19 @@ class App extends LitElement {
     @query("#account")
     accountElement?: HTMLInputElement;
 
+    account: string | null;
+
     constructor() {
         super();
+        this.account = new URL(location.href).searchParams.get("account");
+    }
+
+    firstUpdate = true;
+    protected willUpdate(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
+        if (this.firstUpdate) {
+            if (this.account) this.load();
+            this.firstUpdate = false;
+        }
     }
 
     protected createRenderRoot(): Element | ShadowRoot {
@@ -55,7 +66,7 @@ class App extends LitElement {
 
     async load() {
         this.loading = true;
-        let account = (this.accountElement?.value ?? "").trim().replace("@", "");
+        let account = (this.account ?? "").trim().replace("@", "");
         if (account.length == 0) {
             this.error = "No account given";
             return;
@@ -141,7 +152,7 @@ class App extends LitElement {
                         class="flex-1 bg-none border-l border-t border-b border-gray/75 outline-none rounded-l text-black px-2 py-2"
                         placeholder="Account, e.g. badlogic.bsky.social"
                     />
-                    <button class="align-center rounded-r bg-primary text-white px-4" @click=${this.load}>View</button>
+                    <button class="align-center rounded-r bg-primary text-white px-4" @click=${this.viewAccount}>View</button>
                 </div>`;
         }
 
@@ -158,6 +169,13 @@ class App extends LitElement {
                 <a class="text-primary" href="https://github.com/badlogic/skystats" target="_blank">Source code</a>
             </div>
         </main>`;
+    }
+
+    viewAccount() {
+        if (!this.accountElement) return;
+        const newUrl = new URL(location.href);
+        newUrl.searchParams.set("account", this.accountElement?.value);
+        location.href = newUrl.href;
     }
 
     renderStats(stats: Stats) {
