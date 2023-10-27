@@ -137,7 +137,6 @@ class App extends LitElement {
                         id="account"
                         class="flex-1 bg-none border-l border-t border-b border-gray/75 outline-none rounded-l text-black px-2 py-2"
                         placeholder="Account, e.g. badlogic.bsky.social"
-                        value="badlogic.bsky.social"
                     />
                     <button class="align-center rounded-r bg-primary text-white px-4" @click=${this.load}>View</button>
                 </div>`;

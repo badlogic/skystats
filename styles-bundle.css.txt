@@ -767,12 +767,12 @@ i > svg {
   height: 32px;
 }
 
-.h-full {
-  height: 100%;
-}
-
 .h-\[4em\] {
   height: 4em;
+}
+
+.h-full {
+  height: 100%;
 }
 
 .\!max-h-full {
@@ -807,16 +807,16 @@ i > svg {
   width: 350px;
 }
 
+.w-\[4em\] {
+  width: 4em;
+}
+
 .w-\[80\%\] {
   width: 80%;
 }
 
 .w-full {
   width: 100%;
-}
-
-.w-\[4em\] {
-  width: 4em;
 }
 
 .min-w-\[280px\] {
