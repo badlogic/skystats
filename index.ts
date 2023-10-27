@@ -139,7 +139,7 @@ class App extends LitElement {
         if (this.error) {
             content = html`<div class="border border-gray bg-gray text-white p-4 rounded text-center">Error: ${this.error}</div>`;
         } else if (this.loading) {
-            content = html` <p class="text-center">Fetching 30 days statistics for ${this.accountElement?.value}</p>
+            content = html` <p class="text-center">Fetching 30 days statistics for ${this.account}</p>
                 <p class="text-center">This could take a little while</p>
                 <div class="align-top">${contentLoader}</div>`;
         } else if (this.stats) {
