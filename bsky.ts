@@ -132,6 +132,7 @@ export async function getPosts(handle: string, numDays: number = 30): Promise<Bs
             let done = false;
             for (const post of response.data.feed) {
                 if (post.post.author.handle != handle) continue;
+                if (post.reason) continue;
                 if (isWithinLastNumDays(post.post.record.createdAt, numDays)) {
                     posts.push(post.post);
                 } else {
