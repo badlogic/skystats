@@ -1,2 +1,3 @@
 # skystats
-Analytics for BlueSky
+
+Analytics for BlueSky.
