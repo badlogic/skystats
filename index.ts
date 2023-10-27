@@ -55,10 +55,13 @@ class App extends LitElement {
 
     async load() {
         this.loading = true;
-        const account = (this.accountElement?.value ?? "").trim();
+        let account = (this.accountElement?.value ?? "").trim().replace("@", "");
         if (account.length == 0) {
             this.error = "No account given";
             return;
+        }
+        if (!account.includes(".")) {
+            account += ".bsky.social";
         }
 
         const author = await getAccount(account);
@@ -159,6 +162,12 @@ class App extends LitElement {
 
     renderStats(stats: Stats) {
         Chart.register(...registerables);
+        let likes = 0;
+        let reposts = 0;
+        for (const post of stats.posts) {
+            likes += post.likeCount;
+            reposts += post.repostCount;
+        }
 
         const author = stats.account;
         const topTenReposted = [...stats.posts].sort((a, b) => b.repostCount - a.repostCount).slice(0, 10);
@@ -166,13 +175,18 @@ class App extends LitElement {
         const statsDom = dom(html`<div>
             <div class="flex flex-col items-center">
                 <a class="text-center" href="https://bsky.app/profile/${author.handle ?? author.did}" target="_blank">
-                    ${author.avatar ? html`<img class="w-[4em] h-[4em] rounded-full" src="${author.avatar}" />` : this.defaultAvatar}
+                    ${author.avatar ? html`<img class="w-[6em] h-[6em] rounded-full" src="${author.avatar}" />` : this.defaultAvatar}
                 </a>
                 <a class="text-center" href="https://bsky.app/profile/${author.handle ?? author.did}" target="_blank">
                     <span class="text-primary text-xl">${author.displayName ?? author.handle}</span>
                 </a>
             </div>
-            <div class="mx-auto text-bold text-xl text-center">30 days activity</div>
+            <div class="mx-auto font-bold text-xl text-center">30 days activity</div>
+            <div class="text-center text-lg flex flex-col">
+                <span>${stats.posts.length} posts</span>
+                <span>${reposts} reposts</span>
+                <span>${likes} likes</span>
+            </div>
             <div class="font-bold text-xl underline mt-8">Posts per day</div>
             <canvas id="postsPerDay" class="mt-4"></canvas>
             <div class="font-bold text-xl underline mt-8">Posts per time of day</div>

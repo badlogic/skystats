@@ -767,8 +767,8 @@ i > svg {
   height: 32px;
 }
 
-.h-\[4em\] {
-  height: 4em;
+.h-\[6em\] {
+  height: 6em;
 }
 
 .h-full {
@@ -807,8 +807,8 @@ i > svg {
   width: 350px;
 }
 
-.w-\[4em\] {
-  width: 4em;
+.w-\[6em\] {
+  width: 6em;
 }
 
 .w-\[80\%\] {
