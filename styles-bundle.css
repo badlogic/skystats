@@ -771,6 +771,10 @@ i > svg {
   height: 100%;
 }
 
+.h-\[4em\] {
+  height: 4em;
+}
+
 .\!max-h-full {
   max-height: 100% !important;
 }
@@ -809,6 +813,10 @@ i > svg {
 
 .w-full {
   width: 100%;
+}
+
+.w-\[4em\] {
+  width: 4em;
 }
 
 .min-w-\[280px\] {
@@ -1005,6 +1013,10 @@ i > svg {
   border-color: rgb(85 85 85 / 0.5);
 }
 
+.border-gray\/75 {
+  border-color: rgb(85 85 85 / 0.75);
+}
+
 .border-primary {
   --tw-border-opacity: 1;
   border-color: rgb(204 125 36 / var(--tw-border-opacity));
@@ -1122,6 +1134,11 @@ i > svg {
   line-height: 2rem;
 }
 
+.text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
 .text-sm {
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -1156,6 +1173,10 @@ i > svg {
 .ordinal {
   --tw-ordinal: ordinal;
   font-variant-numeric: var(--tw-ordinal) var(--tw-slashed-zero) var(--tw-numeric-figure) var(--tw-numeric-spacing) var(--tw-numeric-fraction);
+}
+
+.leading-5 {
+  line-height: 1.25rem;
 }
 
 .text-black {
@@ -1255,10 +1276,6 @@ i > svg {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
-}
-
-.hover\:bg-gray\/20:hover {
-  background-color: rgb(85 85 85 / 0.2);
 }
 
 :is(.dark .dark\:bg-black) {

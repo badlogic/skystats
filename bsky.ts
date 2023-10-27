@@ -3,6 +3,7 @@ import { Agent } from "@intrnl/bluesky-client/agent";
 // @ts-ignore
 import type { DID } from "@intrnl/bluesky-client/atp-schema";
 import { RichText } from "@atproto/api";
+import { isWithinLastNumDays } from "./utils";
 
 const agent = new Agent({ serviceUri: "https://api.bsky.app" });
 
@@ -11,6 +12,8 @@ export type BskyAuthor = {
     avatar?: string;
     displayName: string;
     handle?: string;
+    followersCount: number;
+    followsCount: number;
 };
 
 export type BskyFacet = {
@@ -83,6 +86,80 @@ export type BskyThreadPost = {
 };
 
 export type ViewType = "tree" | "embed" | "unroll";
+
+export async function getAccount(handle: string): Promise<BskyAuthor | Error> {
+    try {
+        const response = await agent.rpc.get("app.bsky.actor.getProfile", {
+            params: {
+                actor: handle,
+            },
+        });
+        if (!response.success) {
+            return new Error("Couldn't resolve account " + handle);
+        }
+        return response.data as BskyAuthor;
+    } catch (e) {
+        return new Error("Couldn't resolve account " + handle);
+    }
+}
+
+export async function getPosts(handle: string, numDays: number = 30): Promise<BskyPost[] | Error> {
+    const posts: BskyPost[] = [];
+    try {
+        let cursor: string | undefined = undefined;
+
+        while (true) {
+            const response: any = await agent.rpc.get(
+                "app.bsky.feed.getAuthorFeed",
+                cursor
+                    ? {
+                          params: {
+                              actor: handle,
+                              cursor,
+                          },
+                      }
+                    : {
+                          params: {
+                              actor: handle,
+                          },
+                      }
+            );
+            if (!response.success) {
+                return new Error("Couldn't get posts of account " + handle);
+            }
+            cursor = response.data.cursor;
+            let done = false;
+            for (const post of response.data.feed) {
+                if (post.post.author.handle != handle) continue;
+                if (isWithinLastNumDays(post.post.record.createdAt, numDays)) {
+                    posts.push(post.post);
+                } else {
+                    done = true;
+                }
+            }
+            if (done) break;
+        }
+        return posts;
+    } catch (e) {
+        return new Error("Couldn't get posts of account " + handle);
+    }
+}
+
+export async function getFollowers(handle: string): Promise<BskyAuthor | Error> {
+    try {
+        const response = await agent.rpc.get("app.bsky.graph.getFollowers", {
+            params: {
+                actor: handle,
+            },
+        });
+        if (!response.success) {
+            return new Error("Couldn't get followers of account " + handle);
+        }
+        return response.data as BskyAuthor;
+    } catch (e) {
+        return new Error("Couldn't get followers of account " + handle);
+    }
+}
 
 export async function loadThread(url: string, viewType: ViewType): Promise<{ thread: BskyThreadPost; originalUri: string | undefined } | string> {
     try {

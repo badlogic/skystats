@@ -8,22 +8,24 @@ const blueskyAccount = process.env.SKYSTATS_BLUESKY_ACCOUNT;
 const blueskyKey = process.env.SKYSTATS_BLUESKY_PASSWORD;
 
 if (!blueskyAccount || !blueskyKey) {
-  console.error(
-    "Please specify SKYSTATS_BLUESKY_ACCOUNT and SKYSTATS_BLUESKY_PASSWORD via env vars."
-  );
-  process.exit(-1);
+    console.error("Please specify SKYSTATS_BLUESKY_ACCOUNT and SKYSTATS_BLUESKY_PASSWORD via env vars.");
+    process.exit(-1);
 }
 
 console.log(`BlueSky account: ${blueskyAccount}`);
 console.log(`BlueSky key: ${blueskyKey}`);
 
 (async () => {
-  const app = express();
-  app.use(cors());
-  app.use(compression());
-  app.use(express.static("./"));
+    const app = express();
+    app.use(cors());
+    app.use(compression());
+    app.use(express.static("./"));
 
-  http.createServer(app).listen(port, () => {
-    console.log(`App listening on port ${port}`);
-  });
+    app.get("/api/fetch", async (req, res) => {
+        res.json({ hi: "test" });
+    });
+
+    http.createServer(app).listen(port, () => {
+        console.log(`App listening on port ${port}`);
+    });
 })();
