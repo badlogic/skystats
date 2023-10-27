@@ -631,6 +631,14 @@ i > svg {
   top: 0px;
 }
 
+.right-\[-2em\] {
+  right: -2em;
+}
+
+.right-\[2em\] {
+  right: 2em;
+}
+
 .isolate {
   isolation: isolate;
 }
@@ -709,6 +717,10 @@ i > svg {
 
 .mt-8 {
   margin-top: 2rem;
+}
+
+.ml-auto {
+  margin-left: auto;
 }
 
 .block {
@@ -817,6 +829,10 @@ i > svg {
 
 .w-full {
   width: 100%;
+}
+
+.w-\[1\.2em\] {
+  width: 1.2em;
 }
 
 .min-w-\[280px\] {

@@ -205,7 +205,7 @@ import moonIconSvg from "remixicon/icons/Weather/moon-line.svg";
 import { BskyExternalCard, BskyImage } from "./bsky";
 
 function icon(svg: string) {
-    return html`<i class="flex w-[1.2m] h-[1.2em] border-white fill-primary">${unsafeHTML(svg)}</i>`;
+    return html`<i class="flex w-[1.2em] h-[1.2em] border-white fill-primary">${unsafeHTML(svg)}</i>`;
 }
 
 @customElement("theme-toggle")

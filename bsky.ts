@@ -108,7 +108,7 @@ export async function getAccount(handle: string): Promise<BskyAuthor | Error> {
     }
 }
 
-export async function getPosts(handle: string, numDays: number = 30): Promise<BskyPost[] | Error> {
+export async function getPosts(author: BskyAuthor, numDays: number = 30): Promise<BskyPost[] | Error> {
     const posts: BskyPost[] = [];
     try {
         let cursor: string | undefined = undefined;
@@ -119,24 +119,24 @@ export async function getPosts(handle: string, numDays: number = 30): Promise<Bs
                 cursor
                     ? {
                           params: {
-                              actor: handle,
+                              actor: author.did,
                               cursor,
                           },
                       }
                     : {
                           params: {
-                              actor: handle,
+                              actor: author.did,
                           },
                       }
             );
             if (!response.success) {
-                return new Error("Couldn't get posts of account " + handle);
+                return new Error("Couldn't get posts of account " + author.handle);
             }
             cursor = response.data.cursor;
             if (!cursor) break;
             let done = false;
             for (const post of response.data.feed) {
-                if (post.post.author.handle != handle) continue;
+                if (post.post.author.did != author.did) continue;
                 if (post.reason) continue;
                 if (isWithinLastNumDays(post.post.record.createdAt, numDays)) {
                     posts.push(post.post);
@@ -148,7 +148,7 @@ export async function getPosts(handle: string, numDays: number = 30): Promise<Bs
         }
         return posts;
     } catch (e) {
-        return new Error("Couldn't get posts of account " + handle);
+        return new Error("Couldn't get posts of account " + author.handle);
     }
 }
 

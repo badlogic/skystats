@@ -691,6 +691,10 @@ i > svg {
   margin-left: 1rem;
 }
 
+.ml-auto {
+  margin-left: auto;
+}
+
 .mt-1 {
   margin-top: 0.25rem;
 }
@@ -791,8 +795,8 @@ i > svg {
   width: 2.5rem;
 }
 
-.w-\[1\.2m\] {
-  width: 1.2m;
+.w-\[1\.2em\] {
+  width: 1.2em;
 }
 
 .w-\[2em\] {

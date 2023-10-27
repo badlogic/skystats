@@ -90,7 +90,7 @@ class App extends LitElement {
             return;
         }
 
-        const posts = await getPosts(account, numDays);
+        const posts = await getPosts(author, numDays);
         if (posts instanceof Error) {
             this.error = posts.message;
             return;
