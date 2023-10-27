@@ -25,6 +25,11 @@ export type BskyRecord = {
     createdAt: string;
     text: string;
     facets?: BskyFacet[];
+    reply?: {
+        parent?: {
+            uri?: string;
+        };
+    };
 };
 
 export type BskyImage = {

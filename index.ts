@@ -19,12 +19,15 @@ import {
 } from "./utils";
 import { Chart, registerables } from "chart.js";
 
+type Interaction = { count: number; did: string; account?: BskyAuthor };
+
 interface Stats {
     account: BskyAuthor;
     posts: BskyPost[];
     postsPerDate: Record<string, BskyPost[]>;
     postsPerTimeOfDay: Record<string, BskyPost[]>;
     postsPerWeekday: Record<string, BskyPost[]>;
+    interactedWith: Interaction[];
 }
 
 const numDays = 30;
@@ -96,6 +99,7 @@ class App extends LitElement {
         const postsPerDate: Record<string, BskyPost[]> = {};
         const postsPerTimeOfDay: Record<string, BskyPost[]> = {};
         const postsPerWeekday: Record<string, BskyPost[]> = {};
+        const interactedWith: Record<string, Interaction> = {};
         const weekdays = generateWeekdays();
         for (const post of posts) {
             const date = getYearMonthDate(post.record.createdAt);
@@ -122,14 +126,41 @@ class App extends LitElement {
                 postsPerWeekday[day] = array;
             }
             array.push(post);
+
+            const replyUri = post.record.reply?.parent?.uri;
+            if (replyUri) {
+                const did = replyUri.replace("at://", "").split("/")[0];
+                if (author.did == did) continue;
+                let interaction = interactedWith[did];
+                if (!interaction) {
+                    interaction = {
+                        count: 0,
+                        did: did,
+                        account: undefined,
+                    };
+                    interactedWith[did] = interaction;
+                }
+                interaction.count++;
+            }
         }
 
+        const interactions: Interaction[] = [];
+        for (const interaction of Object.values(interactedWith)) {
+            interactions.push(interaction);
+        }
+        interactions.sort((a, b) => b.count - a.count);
+        for (let i = 0; i < Math.min(10, interactions.length); i++) {
+            const account = await getAccount(interactions[i].did);
+            if (account instanceof Error) continue;
+            interactions[i].account = account;
+        }
         this.stats = {
             account: author,
             posts,
             postsPerDate,
             postsPerTimeOfDay,
             postsPerWeekday,
+            interactedWith: interactions,
         };
         this.loading = false;
     }
@@ -188,6 +219,7 @@ class App extends LitElement {
         }
 
         const author = stats.account;
+        const topRepliedTo = [...stats.interactedWith].filter((interaction) => interaction.account);
         const topTenReposted = [...stats.posts].sort((a, b) => b.repostCount - a.repostCount).slice(0, 10);
         const topTenLiked = [...stats.posts].sort((a, b) => b.likeCount - a.likeCount).slice(0, 10);
         const statsDom = dom(html`<div>
@@ -205,6 +237,23 @@ class App extends LitElement {
                 <span>${reposts} reposts</span>
                 <span>${likes} likes</span>
             </div>
+            <div class="font-bold text-xl underline mt-8 mb-4">Replied the most to</div>
+            ${map(
+                topRepliedTo,
+                (interaction) => html`<div class="flex items-center gap-2 mb-2">
+                    <a
+                        class="flex items-center gap-2"
+                        href="https://bsky.app/profile/${interaction.account!.handle ?? interaction.account!.did}"
+                        target="_blank"
+                    >
+                        ${interaction.account!.avatar
+                            ? html`<img class="w-[2em] h-[2em] rounded-full" src="${interaction.account!.avatar}" />`
+                            : this.defaultAvatar}
+                        <span class="text-primary">${interaction.account!.displayName ?? interaction.account!.handle}</span>
+                    </a>
+                    <span class="text-lg">${interaction.count} times</span>
+                </div> `
+            )}
             <div class="font-bold text-xl underline mt-8">Posts per day</div>
             <canvas id="postsPerDay" class="mt-4"></canvas>
             <div class="font-bold text-xl underline mt-8">Posts per time of day</div>
