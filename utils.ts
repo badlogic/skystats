@@ -290,3 +290,9 @@ export function generateHours(): string[] {
 export function generateWeekdays(): string[] {
     return ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 }
+
+export function replaceSpecialChars(inputString: string): string {
+    const pattern = /[,!?(){}[\]<>;:'"\/\\|&^*%$#@~_+=-]/g;
+    const result = inputString.replace(pattern, " ");
+    return result;
+}

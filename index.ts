@@ -16,10 +16,15 @@ import {
     getYearMonthDate,
     renderCard,
     renderGallery,
+    replaceSpecialChars,
 } from "./utils";
 import { Chart, registerables } from "chart.js";
+import { WordCloudChart, WordCloudController, WordElement } from "chartjs-chart-wordcloud";
+import { removeStopwords, eng, deu, fra } from "stopword";
 
 type Interaction = { count: number; did: string; account?: BskyAuthor };
+
+type Word = { count: number; text: string };
 
 interface Stats {
     account: BskyAuthor;
@@ -28,6 +33,7 @@ interface Stats {
     postsPerTimeOfDay: Record<string, BskyPost[]>;
     postsPerWeekday: Record<string, BskyPost[]>;
     interactedWith: Interaction[];
+    words: Word[];
 }
 
 const numDays = 30;
@@ -100,7 +106,9 @@ class App extends LitElement {
         const postsPerTimeOfDay: Record<string, BskyPost[]> = {};
         const postsPerWeekday: Record<string, BskyPost[]> = {};
         const interactedWith: Record<string, Interaction> = {};
+        const words: Record<string, Word> = {};
         const weekdays = generateWeekdays();
+        const stopWords = [...eng, ...deu, ...fra];
         for (const post of posts) {
             const date = getYearMonthDate(post.record.createdAt);
             let array = postsPerDate[date];
@@ -142,6 +150,31 @@ class App extends LitElement {
                 }
                 interaction.count++;
             }
+
+            const tokens = removeStopwords(
+                replaceSpecialChars(post.record.text)
+                    .split(" ")
+                    .filter((token) => !(token.startsWith("http") || token.includes("/") || token.includes("bsky.social")))
+                    .map((token) => (token.endsWith(".") ? token.substring(0, token.length - 1) : token))
+                    .map((token) => token.toLowerCase()),
+                stopWords
+            );
+
+            for (let token of tokens) {
+                token = token.toLowerCase().trim();
+                if (token.length < 2) continue;
+                if (/^\d+$/.test(token)) continue;
+                if (token.startsWith("@")) continue;
+                let word = words[token];
+                if (!word) {
+                    word = {
+                        count: 0,
+                        text: token,
+                    };
+                    words[token] = word;
+                }
+                word.count++;
+            }
         }
 
         const interactions: Interaction[] = [];
@@ -161,6 +194,7 @@ class App extends LitElement {
             postsPerTimeOfDay,
             postsPerWeekday,
             interactedWith: interactions,
+            words: Object.values(words).sort((a, b) => b.count - a.count),
         };
         this.loading = false;
     }
@@ -211,6 +245,8 @@ class App extends LitElement {
 
     renderStats(stats: Stats) {
         Chart.register(...registerables);
+        Chart.register(WordCloudController, WordElement);
+
         let likes = 0;
         let reposts = 0;
         for (const post of stats.posts) {
@@ -220,8 +256,8 @@ class App extends LitElement {
 
         const author = stats.account;
         const topRepliedTo = [...stats.interactedWith].filter((interaction) => interaction.account);
-        const topTenReposted = [...stats.posts].sort((a, b) => b.repostCount - a.repostCount).slice(0, 10);
-        const topTenLiked = [...stats.posts].sort((a, b) => b.likeCount - a.likeCount).slice(0, 10);
+        const topReposted = [...stats.posts].sort((a, b) => b.repostCount - a.repostCount).slice(0, 5);
+        const topLiked = [...stats.posts].sort((a, b) => b.likeCount - a.likeCount).slice(0, 5);
         const statsDom = dom(html`<div>
             <div class="flex flex-col items-center">
                 <a class="text-center" href="https://bsky.app/profile/${author.handle ?? author.did}" target="_blank">
@@ -241,11 +277,7 @@ class App extends LitElement {
             ${map(
                 topRepliedTo,
                 (interaction) => html`<div class="flex items-center gap-2 mb-2">
-                    <a
-                        class="flex items-center gap-2"
-                        href="https://bsky.app/profile/${interaction.account!.handle ?? interaction.account!.did}"
-                        target="_blank"
-                    >
+                    <a class="flex items-center gap-2" href="?account=${interaction.account!.handle ?? interaction.account!.did}" target="_blank">
                         ${interaction.account!.avatar
                             ? html`<img class="w-[2em] h-[2em] rounded-full" src="${interaction.account!.avatar}" />`
                             : this.defaultAvatar}
@@ -254,16 +286,18 @@ class App extends LitElement {
                     <span class="text-lg">${interaction.count} times</span>
                 </div> `
             )}
+            <div class="font-bold text-xl underline mt-8 mb-4">Word cloud</div>
+            <canvas id="wordCloud" class="mt-4 h-[500px] max-h-[500px]" height="500"></canvas>
             <div class="font-bold text-xl underline mt-8">Posts per day</div>
             <canvas id="postsPerDay" class="mt-4"></canvas>
             <div class="font-bold text-xl underline mt-8">Posts per time of day</div>
             <canvas id="postsPerTimeOfDay" class="mt-4"></canvas>
             <div class="font-bold text-xl underline mt-8">Posts per weekday</div>
             <canvas id="postsPerWeekday" class="mt-4"></canvas>
-            <div class="font-bold text-xl underline mt-8">Top 10 reposted posts</div>
-            <div>${map(topTenReposted, (post) => this.postPartial(post))}</div>
-            <div class="font-bold text-xl underline mt-8">Top 10 liked posts</div>
-            <div>${map(topTenLiked, (post) => this.postPartial(post))}</div>
+            <div class="font-bold text-xl underline mt-8">Top 5 reposted posts</div>
+            <div>${map(topReposted, (post) => this.postPartial(post))}</div>
+            <div class="font-bold text-xl underline mt-8">Top 5 liked posts</div>
+            <div>${map(topLiked, (post) => this.postPartial(post))}</div>
         </div>`)[0];
 
         const chartOptions = {
@@ -283,10 +317,36 @@ class App extends LitElement {
             },
         };
 
+        const wordCloudCanvas = statsDom.querySelector("#wordCloud") as HTMLCanvasElement;
+        const words = stats.words.map((word) => word.text).slice(0, 100);
+        const maxCount = stats.words.reduce((prevWord, word) => (prevWord.count < word.count ? word : prevWord)).count;
+        const wordFrequencies = stats.words.map((word) => 10 + (word.count / maxCount) * 72).slice(0, 100);
+        let ctx = wordCloudCanvas.getContext("2d");
+        if (ctx) {
+            new Chart(ctx, {
+                type: WordCloudController.id,
+                data: {
+                    labels: words,
+                    datasets: [
+                        {
+                            data: wordFrequencies,
+                        },
+                    ],
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            display: false, // Hide the legend box and all labels
+                        },
+                    },
+                },
+            });
+        }
+
         const postsPerDayCanvas = statsDom.querySelector("#postsPerDay") as HTMLCanvasElement;
         const dates = generateDates(numDays);
         const postsPerDay = dates.map((date) => (stats.postsPerDate[date] ? stats.postsPerDate[date].length : 0));
-        let ctx = postsPerDayCanvas.getContext("2d");
+        ctx = postsPerDayCanvas.getContext("2d");
         if (ctx) {
             new Chart(ctx, {
                 type: "bar",

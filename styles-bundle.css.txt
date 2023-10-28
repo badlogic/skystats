@@ -631,14 +631,6 @@ i > svg {
   top: 0px;
 }
 
-.right-\[-2em\] {
-  right: -2em;
-}
-
-.right-\[2em\] {
-  right: 2em;
-}
-
 .isolate {
   isolation: isolate;
 }
@@ -699,6 +691,10 @@ i > svg {
   margin-left: 1rem;
 }
 
+.ml-auto {
+  margin-left: auto;
+}
+
 .mt-1 {
   margin-top: 0.25rem;
 }
@@ -717,10 +713,6 @@ i > svg {
 
 .mt-8 {
   margin-top: 2rem;
-}
-
-.ml-auto {
-  margin-left: auto;
 }
 
 .block {
@@ -787,12 +779,20 @@ i > svg {
   height: 100%;
 }
 
+.h-\[500px\] {
+  height: 500px;
+}
+
 .\!max-h-full {
   max-height: 100% !important;
 }
 
 .max-h-\[70vh\] {
   max-height: 70vh;
+}
+
+.max-h-\[500px\] {
+  max-height: 500px;
 }
 
 .\!w-\[240px\] {
@@ -803,8 +803,8 @@ i > svg {
   width: 2.5rem;
 }
 
-.w-\[1\.2m\] {
-  width: 1.2m;
+.w-\[1\.2em\] {
+  width: 1.2em;
 }
 
 .w-\[2em\] {
@@ -829,10 +829,6 @@ i > svg {
 
 .w-full {
   width: 100%;
-}
-
-.w-\[1\.2em\] {
-  width: 1.2em;
 }
 
 .min-w-\[280px\] {
