@@ -449,6 +449,16 @@ i > svg {
   width: 100%;
 }
 
+input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;
@@ -771,6 +781,10 @@ i > svg {
   height: 32px;
 }
 
+.h-\[500px\] {
+  height: 500px;
+}
+
 .h-\[6em\] {
   height: 6em;
 }
@@ -779,20 +793,16 @@ i > svg {
   height: 100%;
 }
 
-.h-\[500px\] {
-  height: 500px;
-}
-
 .\!max-h-full {
   max-height: 100% !important;
 }
 
-.max-h-\[70vh\] {
-  max-height: 70vh;
-}
-
 .max-h-\[500px\] {
   max-height: 500px;
+}
+
+.max-h-\[70vh\] {
+  max-height: 70vh;
 }
 
 .\!w-\[240px\] {
@@ -837,6 +847,10 @@ i > svg {
 
 .max-w-\[300px\] {
   max-width: 300px;
+}
+
+.max-w-\[400px\] {
+  max-width: 400px;
 }
 
 .max-w-\[728px\] {
@@ -1056,6 +1070,10 @@ i > svg {
 .bg-primary {
   --tw-bg-opacity: 1;
   background-color: rgb(204 125 36 / var(--tw-bg-opacity));
+}
+
+.bg-transparent {
+  background-color: transparent;
 }
 
 .bg-white {

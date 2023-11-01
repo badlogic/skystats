@@ -19,7 +19,7 @@ import {
     replaceSpecialChars,
 } from "./utils";
 import { Chart, registerables } from "chart.js";
-import { WordCloudChart, WordCloudController, WordElement } from "chartjs-chart-wordcloud";
+import { WordCloudController, WordElement } from "chartjs-chart-wordcloud";
 import { removeStopwords, eng, deu, fra } from "stopword";
 
 type Interaction = { count: number; did: string; account?: BskyAuthor };
@@ -35,8 +35,6 @@ interface Stats {
     interactedWith: Interaction[];
     words: Word[];
 }
-
-const numDays = 30;
 
 @customElement("skystats-app")
 class App extends LitElement {
@@ -54,11 +52,20 @@ class App extends LitElement {
     @query("#account")
     accountElement?: HTMLInputElement;
 
+    @query("#days")
+    daysElement?: HTMLInputElement;
+
     account: string | null;
+    days = 30;
 
     constructor() {
         super();
         this.account = new URL(location.href).searchParams.get("account");
+        try {
+            this.days = Number.parseInt(new URL(location.href).searchParams.get("days")!);
+        } catch (e) {
+            this.days = 30;
+        }
     }
 
     firstUpdate = true;
@@ -96,7 +103,7 @@ class App extends LitElement {
             return;
         }
 
-        const posts = await getPosts(author, numDays);
+        const posts = await getPosts(author, this.days);
         if (posts instanceof Error) {
             this.error = posts.message;
             return;
@@ -204,21 +211,34 @@ class App extends LitElement {
         if (this.error) {
             content = html`<div class="border border-gray bg-gray text-white p-4 rounded text-center">Error: ${this.error}</div>`;
         } else if (this.loading) {
-            content = html` <p class="text-center">Fetching 30 days statistics for ${this.account}</p>
+            content = html` <p class="text-center">Fetching ${this.days} day(s) statistics for ${this.account}</p>
                 <p class="text-center">This could take a little while</p>
                 <div class="align-top">${contentLoader}</div>`;
         } else if (this.stats) {
             content = this.renderStats(this.stats);
         } else {
-            content = html` <p class="text-center">Analytics for your BlueSky account</p>
-                <div class="flex mt-4">
+            content = html` <div class="mx-auto max-w-[400px] flex flex-col items-center">
+                <label
+                    >BlueSky account stats for the last
+                    <input
+                        id="days"
+                        type="number"
+                        min="1"
+                        max="365"
+                        value="30"
+                        class="bg-transparent text-center border rounded outline-none p-1 border-gray/75"
+                    />
+                    day(s)</label
+                >
+                <div class="w-full flex mt-4">
                     <input
                         id="account"
                         class="flex-1 bg-none border-l border-t border-b border-gray/75 outline-none rounded-l text-black px-2 py-2"
                         placeholder="Account, e.g. badlogic.bsky.social"
                     />
                     <button class="align-center rounded-r bg-primary text-white px-4" @click=${this.viewAccount}>View</button>
-                </div>`;
+                </div>
+            </div>`;
         }
 
         return html` <main class="flex flex-col justify-between m-auto max-w-[728px] px-4 h-full leading-5">
@@ -240,6 +260,7 @@ class App extends LitElement {
         if (!this.accountElement) return;
         const newUrl = new URL(location.href);
         newUrl.searchParams.set("account", this.accountElement?.value);
+        newUrl.searchParams.set("days", this.daysElement?.value ?? "30");
         location.href = newUrl.href;
     }
 
@@ -267,7 +288,7 @@ class App extends LitElement {
                     <span class="text-primary text-xl">${author.displayName ?? author.handle}</span>
                 </a>
             </div>
-            <div class="mx-auto font-bold text-xl text-center">30 days activity</div>
+            <div class="mx-auto font-bold text-xl text-center">${this.days} day(s) activity</div>
             <div class="text-center text-lg flex flex-col">
                 <span>${stats.posts.length} posts</span>
                 <span>${reposts} reposts</span>
@@ -335,6 +356,9 @@ class App extends LitElement {
                 },
                 options: {
                     plugins: {
+                        tooltip: {
+                            enabled: false,
+                        },
                         legend: {
                             display: false, // Hide the legend box and all labels
                         },
@@ -344,7 +368,7 @@ class App extends LitElement {
         }
 
         const postsPerDayCanvas = statsDom.querySelector("#postsPerDay") as HTMLCanvasElement;
-        const dates = generateDates(numDays);
+        const dates = generateDates(this.days);
         const postsPerDay = dates.map((date) => (stats.postsPerDate[date] ? stats.postsPerDate[date].length : 0));
         ctx = postsPerDayCanvas.getContext("2d");
         if (ctx) {
