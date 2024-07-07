@@ -20,7 +20,8 @@ import {
 } from "./utils";
 import { Chart, registerables } from "chart.js";
 import { WordCloudController, WordElement } from "chartjs-chart-wordcloud";
-import { removeStopwords, eng, deu, fra } from "stopword";
+import { removeStopwords, eng, deu } from "stopword";
+import { fra } from "./french-stopwords";
 
 type Interaction = { count: number; did: string; account?: BskyAuthor };
 
@@ -298,7 +299,11 @@ class App extends LitElement {
             ${map(
                 topRepliedTo,
                 (interaction) => html`<div class="flex items-center gap-2 mb-2">
-                    <a class="flex items-center gap-2" href="?account=${interaction.account!.handle ?? interaction.account!.did}" target="_blank">
+                    <a
+                        class="flex items-center gap-2"
+                        href="?account=${interaction.account!.handle ?? interaction.account!.did}&days=${this.days}"
+                        target="_blank"
+                    >
                         ${interaction.account!.avatar
                             ? html`<img class="w-[2em] h-[2em] rounded-full" src="${interaction.account!.avatar}" />`
                             : this.defaultAvatar}
